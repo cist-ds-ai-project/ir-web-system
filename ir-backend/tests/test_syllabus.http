@@ -1,0 +1,13 @@
+@baseUrl = http://localhost:8000
+
+### 科目一覧を取得
+### `course_id` を確認して、下の `@courseId` に設定して使う
+GET {{baseUrl}}/lecture/all
+Accept: application/json
+
+###
+@courseId = c20250054
+
+### 特定科目のシラバス詳細を取得
+GET {{baseUrl}}/syllabus/{{courseId}}
+Accept: application/json

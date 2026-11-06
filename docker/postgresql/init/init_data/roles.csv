@@ -1,0 +1,5 @@
+id,role_name,display_name
+1,admin,システム管理者
+2,ir_committee,IR委員会
+3,teacher,教員
+4,student,学生

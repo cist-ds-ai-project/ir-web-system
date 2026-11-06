@@ -1,0 +1,21 @@
+###  全講義データの一括取得（フロントエンド側でフィルタリング用）
+GET http://localhost:8000/api/grades/all
+Accept: application/json
+
+### 特定の科目の詳細データを取得
+### 基礎数学 = %E5%9F%BA%E7%A4%8E%E6%95%B0%E5%AD%A6
+GET http://localhost:8000/api/grades/detail/基礎数学入門
+Accept: application/json
+
+
+### カテゴリーを取得
+GET http://localhost:8000/api/grades/categories
+Accept: application/json
+
+### 履修者推移取得
+GET http://localhost:8000/enrollment/%E5%9F%BA%E7%A4%8E%E6%95%B0%E5%AD%A6%E5%85%A5%E9%96%80
+Accept: application/json
+
+### 全ての授業を取得
+GET http://localhost:8000/enrollment/lectures
+Accept: application/json

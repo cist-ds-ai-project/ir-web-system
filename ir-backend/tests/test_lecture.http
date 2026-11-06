@@ -1,0 +1,6 @@
+GET http://localhost:8000/lecture/all
+Accept: application/json
+
+###
+GET http://localhost:8000/lecture/options
+Accept: application/json
