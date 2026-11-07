@@ -4,31 +4,132 @@
 
 ---
 
+## 目次
+
+- [プロジェクトについて](#プロジェクトについて)
+- [機能紹介](#機能紹介)
+- [スクリーンショット](#スクリーンショット)
+- [対象ユーザ](#対象ユーザ)
+- [システム構成](#システム構成)
+- [技術スタック](#技術スタック)
+- [環境構築](#環境構築)
+- [各コンポーネント](#各コンポーネント)
+- [リポジトリ構成](#リポジトリ構成)
+- [ライセンス](#ライセンス)
+
+---
+
+## プロジェクトについて
+
+本システムは、大学の有志の学生が集まって開発している IR（Institutional Research）支援アプリケーションです。
+
+大学の教学データ（GPA、成績推移、成績分布等）を可視化し、教員や IR 委員会だけでなく、学生自身も自分の学びや授業の傾向を把握できるようにすることを目指しています。
+
+---
+
+## 機能紹介
+
+
+
+### 全ユーザー向け機能
+
+- **授業絞り込み**：学年・学科・必修/選択・開講学期で授業を絞り込み（最新年度の情報を表示）
+- **成績分布**：評価（秀・優・良・可・不可）ごとの人数を年度別に表示。人数表示・割合表示・前年度比較に対応
+- **授業評価アンケート**：アンケートの回答結果とコメントを年度別に表示
+- **履修者推移**：履修者数の年度ごとの推移を表示。人数・割合の切り替えや、他の科目との比較が可能
+- **GPA統計**：開講年度・学部・学科・学年ごとのGPA分布をヒストグラムで表示（平均・最大・最小・標準偏差つき）
+- **奨学金**：奨学金の受給割合と受給者数の推移を、種別・学部・学科・学年で絞り込んで表示
+
+### 学生向け機能
+
+- **個人成績**：自分のGPAと履修した授業の一覧を表示
+- **授業詳細**：授業ごとの自分の成績・出席状況と、自分のアンケート回答の振り返りを表示
+
+### 教員向け機能
+
+- **担当授業**：担当している授業の一覧と、授業ごとの成績分布・授業情報を表示
+
+### 管理者向け機能
+
+- **ユーザー管理**：ユーザーの追加（1件ずつ / CSVで一括）・情報変更・無効化・有効化
+
+### 共通機能
+
+- **ログイン・パスワード変更**
+
+
+
+---
+
+## スクリーンショット
+
+※ 画面に表示されているデータはすべてダミーデータです。
+
+### TOP
+
+![TOP画面](docs/top.png)
+
+### 成績分布
+
+![成績分布](docs/grade.png)
+
+### 個人成績（学生向け）
+
+![個人成績](docs/person_grade.png)
+
+### ユーザー管理（管理者向け）
+
+![ユーザー管理](docs/user_manage.png)
+
+---
+
+## 対象ユーザ
+
+本システムは大学に所属する以下のユーザを想定しています。
+すべてのユーザが、授業ごとの成績分布・履修者推移・アンケート結果などの共通メニューを利用できます。
+
+| ユーザ | ロール名 | 主にできること |
+|---|---|---|
+| 管理者 | `admin` | ユーザーの追加・無効化などシステムの管理 |
+| IR 委員会 | `ir_committee` | 共通メニューの閲覧 |
+| 教員 | `teacher` | 担当授業の成績の確認 |
+| 学生 | `student` | 自分の成績（個人成績）の確認 |
+
+---
+
 ## システム構成
 
-本システムはフロントエンドとバックエンドの2つのコンポーネントで構成されています。
+本システムはフロントエンド・バックエンド・データベースの3つのコンポーネントで構成されています。
 
 ```mermaid
 flowchart LR
-    subgraph Frontend["ir-frontend<br/>(画面・UI)"]
+    subgraph Dev["開発環境"]
         direction TB
-        F1[Java 25]
-        F2[Vaadin 25]
-        F3[Spring Boot]
+        subgraph Frontend["ir-frontend<br/>(画面・UI)"]
+            direction TB
+            F1[Java 25]
+            F2[Spring Boot 4]
+            F3[Vaadin 25]
+            F4[React]
+        end
+
+        subgraph Backend["ir-backend<br/>(API・データ分析)"]
+            direction TB
+            B1[Python 3.13]
+            B2[FastAPI]
+            B3[pandas]
+        end
+
+        Frontend <-->|"HTTP (REST API)"| Backend
     end
-    
-    subgraph Backend["ir-backend<br/>(API・データ分析)"]
-        direction TB
-        B1[Python]
-        B2[FastAPI]
-        B3[pandas]
+
+    subgraph Server["Ubuntu Server"]
+        subgraph Docker["Docker"]
+            DB[("PostgreSQL<br/>(データベース)")]
+        end
     end
-    
-    subgraph DB["PostgreSQL<br/>(データベース)"]
-    end
-    
-    Frontend <-->|"HTTP (REST API)"| Backend
-    Backend <-->|"SQL"| DB
+
+    Dev <-->|"SQL"| Server
 ```
 
 ---
@@ -43,23 +144,32 @@ flowchart LR
 | 言語 | Java 25 / TypeScript (React) |
 | ビルドツール | Maven / npm |
 | DB アクセス | JdbcClient |
+| 認証 | Spring Security |
 | API 通信 | Spring HTTP Interface（`@HttpExchange`） |
 
 ### バックエンド（ir-backend）
 
 | カテゴリ | 技術 |
 |---|---|
-| フレームワーク | FastAPI |
-| 言語 | Python |
+| フレームワーク | FastAPI/Uvicorn |
+| 言語 | Python 3.13 |
 | DB アクセス | psycopg2 |
 | データ処理 | pandas / NumPy |
-| テスト | HTTP Client (`.http` ファイル) |
+| API 動作確認 | HTTP Client (`.http` ファイル) |
 
 ### インフラ
 
 | カテゴリ | 技術 |
 |---|---|
-| データベース | PostgreSQL |
+| データベース | PostgreSQL 14.11 |
+| コンテナ | Docker / Docker Compose |
+
+---
+
+## 環境構築
+
+開発環境の構築手順は、以下のPDFを参照してください。
+[setup-guide.pdf](./setup-guide.pdf)
 
 ---
 
@@ -69,30 +179,9 @@ flowchart LR
 
 | コンポーネント | 説明 | README |
 |---|---|---|
-| [ir-frontend](./ir-frontend/) | 画面・UI を担当。Vaadin + Spring Boot ベースとし、可視化のための React グラフコンポーネントも作成します。 | [README](./ir-frontend/README.md) |
+| [ir-frontend](./ir-frontend/) | 画面・UI を担当。Vaadin + Spring Boot ベースとし、可視化のための React グラフコンポーネントも含みます。 | [README](./ir-frontend/README.md) |
 | [ir-backend](./ir-backend/) | API・データ分析を担当。FastAPI で構築。 | [README](./ir-backend/README.md) |
 | [docker](./docker/) | データベース（PostgreSQL）の Docker 環境。ローカル開発やサーバー構築時に使用します。 | [README](./docker/README.md) |
-
----
-
-## 環境構築
-
-開発環境の構築手順は、以下のPDFを参照してください。
-（ただし、2024年時点の資料であるため更新が必要。）
-[setup-guide.pdf](./setup-guide.pdf)
-
----
-
-## 対象ユーザ
-
-本システムは大学に所属する以下のユーザを想定しています。
-
-| ユーザ | 役割 |
-|---|---|
-| 管理者 | ユーザの追加・削除などシステムの管理 |
-| IR 委員会所属 | IR の取り決めを行う |
-| 教員 | 大学に所属する教員 |
-| 学生 | 大学に所属する学生 |
 
 ---
 
@@ -102,6 +191,9 @@ flowchart LR
 ir-web/
 ├── README.md              … このファイル（プロジェクト全体の概要）
 ├── .gitignore
+├── setup-guide.pdf        … 開発環境の構築手順（PDF）
+├── docs/                  … README 用の画像
+├── docker/                … データベース（PostgreSQL）の Docker 環境
 ├── ir-frontend/           … フロントエンド（Vaadin + Spring Boot）
 │   ├── README.md          … フロントエンドの情報
 │   ├── pom.xml
@@ -112,9 +204,12 @@ ir-web/
     └── src/
 ```
 
-##ライセンス
+---
+
+## ライセンス
 
 ```
+
 1. 非営利利用
 本ソフトウェアの利用は、非営利目的での利用に限り許可されます。
 
@@ -137,4 +232,5 @@ ir-web/
 利用登録フォーム： https://forms.gle/GCWgxpEpawfvegjq7
 
 利用者は、本ソフトウェアの利用開始にあたり、上記フォームへの登録にご協力ください。
+
 ```
